@@ -9,10 +9,15 @@ class TimeDatabase {
 	}
 
 	createDatabase() {
+		if (this.db) {
+			console.error("Database already open.");
+			return;
+		}
+		console.log("Creating database.")
 		const request = window.indexedDB.open('TimeTracker', 1);
 
 		request.onerror = (event) => {
-			console.error(`Database error: ${event.target.errorCode}`);
+			console.error("Database error:", event.target.errorCode);
 		};
 
 		request.onupgradeneeded = (event) => {
@@ -38,7 +43,7 @@ class TimeDatabase {
 			console.log("Database open.");
 
 			this.db.onerror = (event) => {
-				console.error(`Database error: ${event.target.errorCode}`);
+				console.error("Database error:", event.target.errorCode);
 			};
 		};
 	}
@@ -47,20 +52,20 @@ class TimeDatabase {
 		return new Promise(async () => {
 			if (!this.db) {
 				console.log("Database not open.");
+				reject("Database not open.");
 			}
 			
 			const insertTransaction = this.db.transaction(this.tableName, "readwrite");
 			const dataTable = insertTransaction.objectStore(this.tableName);
-			
-			// TODO: Can we verify that our timeBlock is in the correct format?
+
 			let request = await dataTable.add(timeBlock, timeBlock.startTime);
 			
 			request.onsuccess = function () {
-				console.log("Block added:", request.result);
+				console.log("Block added:", timeBlock);
 			}
 
 			request.onerror = function () {
-				console.log("Problem adding block:", request.error);
+				console.error("Problem adding block:", request.error);
 			}
 		});
 	}
@@ -162,6 +167,7 @@ class TimeDatabase {
 			return;
 		}
 		this.db.close();
+		this.db = null;
 		window.indexedDB.deleteDatabase('TimeTracker');
 		console.log("Database deleted.");
 	}
@@ -171,91 +177,55 @@ var currentHost = "";
 var lastInterval = new Date().getTime();
 var database = new TimeDatabase();
 
-// This works for when a website is loaded the first time, 
-// not on tab changes
-chrome.webNavigation.onCompleted.addListener(function() {
-	changeWebpage();
-});
-
-// Get the host name of the active tab
-async function getCurrentTab() {
-	return new Promise((resolve, reject) => {
-		let queryOptions = { active: true, lastFocusedWindow: true };
-		chrome.tabs.query(queryOptions, (tabs) => {
-			let [tab] = tabs;
-			if (tab) {
-				let url = new URL(tab.url);
-				resolve(url.hostname);
-			} else {
-				reject("No active tab found.");
-			}
-		});
-	});
-}
-
-async function onFocusGained() {
-	let newHost = await getCurrentTab();
-	if (currentHost == newHost) {
+async function changeWebpage(newHost) {
+	if (currentHost == newHost)
 		return;
-	}
+
 	currentHost = newHost;
 	lastInterval = new Date().getTime();
 }
 
 async function onFocusLost() {
-	let timeBlock = {
-		host: currentHost,
-		startTime: lastInterval,
-		endTime: new Date().getTime(),
-	};
-
-	if (currentHost != "") {
-		database.insertBlock(timeBlock);
-	}
-	currentHost = "";
-}
-
-async function changeWebpage() {
-	let newHost = await getCurrentTab();
-	
-	if (currentHost == newHost) {
+	if (currentHost == "")
 		return;
+
+	// Don't record intervals less than 1 second or if the host is empty
+	if (new Date().getTime() - lastInterval >= 1000 || currentHost != "") {
+		database.insertBlock({
+			host: currentHost,
+			startTime: lastInterval,
+			endTime: new Date().getTime(),
+		});
 	}
 
-	let timeBlock = {
-		host: currentHost,
-		startTime: lastInterval,
-		endTime: new Date().getTime(),
-	};
-	
-	// Don't save empty hosts
-	if (currentHost != "") {
-		database.insertBlock(timeBlock);
-	}
-
-	currentHost = newHost;
+	currentHost = "";
 	lastInterval = new Date().getTime();
 }
 
 // Prepare the data to send to the frontend
 async function generateData(request) {
+	// TODO: remember to separate this by function
 	let responseData = await database.getDataSorted();
-	console.log(responseData);
 	return responseData;
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	console.log(new Date().toString());
 	console.log(request)
-    // if (request == "deleteData") {
-	// 	database.deleteDatabase();
-	// 	sendResponse("Data deleted.");
-	// } else if (request == "pageFocused") {
-	// 	console.log("Tab focused!");
-	// } else if (request == "pageBlurred") {
-	// 	console.log("Tab blurred!");
-	// } else {
+	if (request.command == "deleteData") {
+		database.deleteDatabase();
+		database.createDatabase();
+		sendResponse("Data deleted.");
+	} else if (request.command == "pageFocused") {
+		changeWebpage(request.page);
+	} else if (request.command == "pageBlurred") {
+		onFocusLost();
+	} else if (request.command == "newPage") {
+		changeWebpage(request.page);
+	} else {
 		generateData(request).then(sendResponse);
-	// }
+	}
+
 	// Important! Return true to indicate you want to send a response asynchronously
 	return true;
 });

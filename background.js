@@ -174,8 +174,13 @@ class TimeDatabase {
 }
 
 var currentHost = "";
-var lastInterval = new Date().getTime();
-var database = new TimeDatabase();
+var lastInterval = null;
+var database = null;
+
+chrome.runtime.onInstalled.addListener(function() {
+	lastInterval = new Date().getTime();
+	database = new TimeDatabase();
+});
 
 async function changeWebpage(newHost) {
 	if (currentHost == newHost)

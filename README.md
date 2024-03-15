@@ -4,3 +4,5 @@ An extension for your browser that keeps track of how much time you spend on cer
 ## Planned Features
 - CI workflow
 - Unit testing
+- Convert to MV3 from MV2
+- Have the extension work with Firefox and Chrome

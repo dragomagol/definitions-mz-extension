@@ -1,7 +1,7 @@
 {
 	"manifest_version": 2,
-	"name": "Message Passing Extension",
-	"description": "Example of message passing between background and popup scripts",
+	"name": "Time Tracker",
+	"description": "This extension tracks the time spent on each website and provides a summary of the time spent on each website.",
 	"version": "1.0",
 	"permissions": [
 		"activeTab",

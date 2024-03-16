@@ -3,7 +3,10 @@
 	<head>
 		<meta charset="utf-8" />
 		<link rel="stylesheet" href="bootstrap.min.css" />
-		<style>body { width: 500px; height: 500px; padding: 1em; }</style>
+		<style>
+			body { width: 500px; height: 500px; padding: 1em; }
+			canvas { width: 350px; height: 350px; }
+		</style>
 	</head>
 
 	<body>
@@ -15,24 +18,39 @@
 		</div>
 		<div class="panel">
 			<ul class="nav nav-pills mb-3 justify-content-center" id="pills-tab" role="tablist">
+				<!-- Day Tab Button -->
 				<li class="nav-item" role="presentation">
 					<button class="nav-link active" id="pills-day-tab" data-bs-toggle="pill" data-bs-target="#pills-day" type="button" role="tab" aria-controls="pills-day" aria-selected="true">Day</button>
 				</li>
+				<!-- Week Tab Button -->
 				<li class="nav-item" role="presentation">
-					<button class="nav-link" id="pills-month-tab" data-bs-toggle="pill" data-bs-target="#pills-month" type="button" role="tab" aria-controls="pills-month" aria-selected="false">Week</button>
+					<button class="nav-link" id="pills-week-tab" data-bs-toggle="pill" data-bs-target="#pills-week" type="button" role="tab" aria-controls="pills-week" aria-selected="false">Week</button>
 				</li>
+				<!-- Day Month Button -->
 				<li class="nav-item" role="presentation">
-					<button class="nav-link" id="pills-year-tab" data-bs-toggle="pill" data-bs-target="#pills-year" type="button" role="tab" aria-controls="pills-year" aria-selected="false">Month</button>
+					<button class="nav-link" id="pills-month-tab" data-bs-toggle="pill" data-bs-target="#pills-month" type="button" role="tab" aria-controls="pills-month" aria-selected="false">Month</button>
 				</li>
 			</ul>
 			<div class="tab-content" id="pills-tabContent">
+				<!-- Day Tab Content -->
 				<div class="tab-pane fade show active" id="pills-day" role="tabpanel" aria-labelledby="pills-day-tab">
+					<div>
+						<canvas id="daychart"></canvas>
+					</div>
 					Content for day tab
 				</div>
-				<div class="tab-pane fade" id="pills-month" role="tabpanel" aria-labelledby="pills-week-tab">
+				<!-- Week Tab Content -->
+				<div class="tab-pane fade" id="pills-week" role="tabpanel" aria-labelledby="pills-week-tab">
+					<div>
+						<canvas id="weekchart"></canvas>
+					</div>
 					Content for week tab
 				</div>
-				<div class="tab-pane fade" id="pills-year" role="tabpanel" aria-labelledby="pills-year-tab">
+				<!-- Month Tab Content -->
+				<div class="tab-pane fade" id="pills-month" role="tabpanel" aria-labelledby="pills-month-tab">
+					<div>
+						<canvas id="monthchart"></canvas>
+					</div>
 					Content for month tab
 				</div>
 			</div>

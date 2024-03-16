@@ -1,6 +1,11 @@
 // For some undefined future time: use Manifest V3
 // Our database, ideally this would be in a separate file
 class TimeDatabase {
+	// Constants for milliseconds in a day, week, and month
+	DAY = 86400000;
+	WEEK = 604800000;
+	MONTH = 2592000000;
+
 	tableName = "timeBlocks";
 	db = null;
 
@@ -70,7 +75,7 @@ class TimeDatabase {
 		});
 	}
 
-	async getAllData() {
+	async getDataInRange(duration) {
 		return new Promise((resolve, reject) => {
 			if (!this.db) {
 				console.error("Database not open.");
@@ -78,17 +83,45 @@ class TimeDatabase {
 			}
 
 			const dataTable = this.db.transaction(this.tableName).objectStore(this.tableName);
-			let allData = [];
+			let dataMap = new Map();
+
+			let currentTime = new Date().getTime();
+			let durationStart = currentTime - duration;
 
 			dataTable.openCursor().onsuccess = function(event) {
 				// Use the cursor and add the extracted data to the array
 				let cursor = event.target.result;
 				if (cursor) {
-					allData.push(cursor.value);
+					let host = cursor.value.host;
+					let startTime = cursor.value.startTime;
+					let endTime = cursor.value.endTime;
+
+					if (startTime >= durationStart) {
+						var hour = new Date(startTime).getHours();
+						if (dataMap.has(hour)) {
+							var hourMap = dataMap.get(hour);
+							if (hourMap.has(host)) {
+								hourMap.set(host, hourMap.get(host) + (endTime - startTime));
+							} else {
+								hourMap.set(host, endTime - startTime);
+							}
+							dataMap.set(hour, hourMap);
+						} else {
+							var hourMap = new Map();
+							hourMap.set(host, endTime - startTime);
+							dataMap.set(hour, hourMap);
+						}
+					}
 					cursor.continue();
 				} else {
-					console.log("Got all data:", allData.length, "entries.");
-					resolve(allData);
+					let valueArray = Array.from(dataMap, ([hour, hostMap]) => ({ hour, hostMap }));
+					// flatten the inner maps remaining
+					valueArray = valueArray.map((item) => {
+						let hostMap = item.hostMap;
+						let hostArray = Array.from(hostMap, ([host, duration]) => ({ host, duration }));
+						return { hour: item.hour, hostMap: hostArray };
+					});
+					resolve(valueArray);
 				}
 			};
 
@@ -98,6 +131,7 @@ class TimeDatabase {
 		});
 	}
 	
+	// Combine all data and sort it by duration
 	async getDataSorted() {
 		return new Promise((resolve, reject) => {
 			if (!this.db) {
@@ -124,7 +158,6 @@ class TimeDatabase {
 					cursor.continue();
 				} else {
 					let sortedMap = new Map([...dataMap.entries()].sort((a, b) => b[1] - a[1]));
-					// console.log(Object.fromEntries(sortedMap));
 					let valueArray = Array.from(sortedMap, ([host, duration]) => ({ host, duration }));
 					resolve(valueArray);
 				}
@@ -195,7 +228,7 @@ async function onFocusLost() {
 		return;
 
 	// Don't record intervals less than 1 second or if the host is empty
-	if (new Date().getTime() - lastInterval >= 1000 || currentHost != "") {
+	if (new Date().getTime() - lastInterval >= 1000 && currentHost != "") {
 		database.insertBlock({
 			host: currentHost,
 			startTime: lastInterval,
@@ -208,14 +241,12 @@ async function onFocusLost() {
 }
 
 // Prepare the data to send to the frontend
-async function generateData(request) {
-	// TODO: remember to separate this by function
-	let responseData = await database.getDataSorted();
+async function generateData(duration) {
+	let responseData = await database.getDataInRange(duration);
 	return responseData;
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	console.log(new Date().toString());
 	console.log(request)
 	if (request.command == "deleteData") {
 		database.deleteDatabase();
@@ -227,8 +258,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		onFocusLost();
 	} else if (request.command == "newPage") {
 		changeWebpage(request.page);
+	} else if (request.command == "getDayData") {
+		generateData(database.DAY).then(sendResponse);
+	} else if (request.command == "getWeekData") {
+		generateData(database.WEEK).then(sendResponse);
+	} else if (request.command == "getMonthData") {
+		generateData(database.MONTH).then(sendResponse);
 	} else {
-		generateData(request).then(sendResponse);
+		console.error("Unknown command:", request.command);
 	}
 
 	// Important! Return true to indicate you want to send a response asynchronously

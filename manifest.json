@@ -10,7 +10,10 @@
 		"webNavigation"
 	],
 	"background": {
-		"scripts": ["background.js"],
+		"scripts": [
+            "database.js",
+            "background.js"
+        ],
 		"persistent": true
 	},
 	"browser_action": {

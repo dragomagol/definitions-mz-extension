@@ -1,4 +1,3 @@
-// For some undefined future time: use Manifest V3
 var currentHost = "";
 var lastInterval = null;
 var database = null;

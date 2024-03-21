@@ -3,6 +3,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<link rel="stylesheet" href="bootstrap.min.css" />
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.2.0/chart.umd.js"></script>
 		<style>
 			body { width: 500px; height: 500px; padding: 1em; }
 			canvas { width: 350px; height: 350px; }
@@ -10,12 +11,6 @@
 	</head>
 
 	<body>
-		<div class="d-none" id="spinner">
-			<div class="d-flex justify-content-center">
-				<div class="spinner-border" role="status">
-				</div>
-			</div>
-		</div>
 		<div class="panel">
 			<ul class="nav nav-pills mb-3 justify-content-center" id="pills-tab" role="tablist">
 				<!-- Day Tab Button -->
@@ -59,6 +54,6 @@
 		<button class="btn btn-primary" id="deleteData">Delete data</button>
 
 		<script src="bootstrap.min.js"></script>
-		<script src="popup.js"></script>
+		<script type="module" src="popup.js"></script>
 	</body>
 </html>

@@ -13,32 +13,44 @@ function msToTime(duration) {
 	return hours + "h " + minutes + "m " + seconds + "s";
 }
 
-document.getElementById('sendMessage').addEventListener('click', function() {
-	let body = document.getElementsByClassName("panel")[0];
-	// I'm pretty sure this doesn't work but whatever
-    let spinner = document.getElementById("spinner");
-
-    body.hidden = !body.hidden;
-	spinner.hidden = !spinner.hidden;
-
-	chrome.runtime.sendMessage({command: "getDayData"}, function(response) {
-		let textElement = document.getElementById("pills-day");
-		textElement.textContent = "";
-		response.map((item) => {
-            let newHeader = document.createElement("h3");
-			newHeader.textContent = `${item.hour}`;
-			textElement.append(newHeader);
-            
-            item.hostMap.map((item) => {
-                let newLine = document.createElement("div");
-                newLine.textContent = `${msToTime(item.duration)} - ${item.host}`;
-                textElement.append(newLine);
-            });
+function configureGraph(response) {
+	let textElement = document.getElementById("pills-day");
+	textElement.textContent = "";
+	let data = [];
+	
+	response.map((hour) => {
+		let totalTime = 0;
+		hour.hostMap.map((item) => {
+			totalTime += item.duration;
 		});
+		data.push({hour: hour.hour, activeTime: totalTime});
 	});
 
-	body.hidden = !body.hidden;
-	spinner.hidden = !spinner.hidden;
+	let canvas = document.createElement("canvas");
+	canvas.id = "daychart";
+
+	new Chart(
+		canvas,
+		{
+		  type: 'bar',
+		  data: {
+				labels: data.map(row => row.hour),
+				datasets: [
+					{
+						label: 'Minutes active per hour',
+						data: data.map(row => row.activeTime / 60000),
+					}
+				]
+			}
+		}
+	);
+	textElement.append(canvas);
+}
+
+document.getElementById('sendMessage').addEventListener('click', function() {
+	chrome.runtime.sendMessage({command: "getDayData"}, function(response) {
+		configureGraph(response);
+	});
 });
 
 document.getElementById('deleteData').addEventListener('click', function() {

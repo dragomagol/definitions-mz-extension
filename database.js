@@ -54,7 +54,7 @@ class TimeDatabase {
 	async insertBlock(timeBlock) {
 		return new Promise(async () => {
 			if (!this.db) {
-				console.log("Database not open.");
+				console.error("Database not open.");
 				reject("Database not open.");
 			}
 			
@@ -62,10 +62,6 @@ class TimeDatabase {
 			const dataTable = insertTransaction.objectStore(this.tableName);
 
 			let request = await dataTable.add(timeBlock, timeBlock.startTime);
-			
-			request.onsuccess = function () {
-				console.log("Block added:", timeBlock);
-			}
 
 			request.onerror = function () {
 				console.error("Problem adding block:", request.error);

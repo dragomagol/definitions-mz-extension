@@ -18,7 +18,15 @@ function configureGraph(response) {
 	textElement.textContent = "";
 	let data = [];
 	
+	let currentHour = new Date().getHours();
 	response.map((hour) => {
+		// Fill in hours with no activity
+		while(currentHour < hour.hour) {
+			data.push({hour: currentHour, activeTime: 0});
+			currentHour = (currentHour + 1) % 24;
+		}
+		currentHour = (currentHour + 1) % 24;
+	
 		let totalTime = 0;
 		hour.hostMap.map((item) => {
 			totalTime += item.duration;
@@ -47,10 +55,9 @@ function configureGraph(response) {
 	textElement.append(canvas);
 }
 
-document.getElementById('sendMessage').addEventListener('click', function() {
-	chrome.runtime.sendMessage({command: "getDayData"}, function(response) {
-		configureGraph(response);
-	});
+// request data on load
+chrome.runtime.sendMessage({command: "getDayData"}, function(response) {
+	configureGraph(response);
 });
 
 document.getElementById('deleteData').addEventListener('click', function() {

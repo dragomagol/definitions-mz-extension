@@ -39,7 +39,6 @@ async function generateData(duration) {
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	console.log(request)
 	if (request.command == "deleteData") {
 		database.deleteDatabase();
 		database.createDatabase();

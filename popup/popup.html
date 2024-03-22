@@ -6,7 +6,6 @@
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.2.0/chart.umd.js"></script>
 		<style>
 			body { width: 500px; height: 500px; padding: 1em; }
-			canvas { width: 350px; height: 350px; }
 		</style>
 	</head>
 
@@ -29,10 +28,8 @@
 			<div class="tab-content" id="pills-tabContent">
 				<!-- Day Tab Content -->
 				<div class="tab-pane fade show active" id="pills-day" role="tabpanel" aria-labelledby="pills-day-tab">
-					<div>
-						<canvas id="daychart"></canvas>
-					</div>
-					Content for day tab
+					<div id="dayTotal"></div>
+					<div id="hourBreakdown"></div>
 				</div>
 				<!-- Week Tab Content -->
 				<div class="tab-pane fade" id="pills-week" role="tabpanel" aria-labelledby="pills-week-tab">

@@ -1,10 +1,12 @@
 const defaultDeleteText = "Delete data";
 const confirmationText = "Are you sure?";
 
+var dayData; 
+
 function msToTime(duration) {
-	var seconds = Math.floor((duration / 1000) % 60);
-	var minutes = Math.floor((duration / (1000 * 60)) % 60);
-	var hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+	let seconds = Math.floor((duration / 1000) % 60);
+	let minutes = Math.floor((duration / (1000 * 60)) % 60);
+	let hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
   
 	hours = (hours < 10) ? "0" + hours : hours;
 	minutes = (minutes < 10) ? "0" + minutes : minutes;
@@ -13,9 +15,49 @@ function msToTime(duration) {
 	return hours + "h " + minutes + "m " + seconds + "s";
 }
 
-function configureGraph(response) {
-	let textElement = document.getElementById("pills-day");
-	textElement.textContent = "";
+function hourBreakdownChart(event, active, dayData) {
+	let datasetIndex = active[0].datasetIndex;
+	let dataIndex = active[0].index;
+
+	// The active time in minutes
+	let value = event.chart.data.datasets[datasetIndex].data[dataIndex];
+	// The hour
+	let label = event.chart.data.labels[dataIndex];
+
+	let hourlyData = [];
+	dayData.map((period) => {
+		if (period.hour == label) {
+			period.hostMap.map((item) => {
+				hourlyData.push({
+					host: item.host, duration: Math.round(item.duration / 60000)
+				});
+			});
+		}
+	});
+
+	let hourBreakdown = document.createElement("canvas");
+	new Chart(
+		hourBreakdown, {
+			type: 'pie',
+			data: {
+				labels: hourlyData.map(row => row.host),
+				datasets: [{ data: hourlyData.map(row => row.duration) }]
+			},
+			options: {
+				plugins: {
+					title: {
+						display: true,
+						text: "Hourly breakdown for " + label + ":00"
+					}
+				}
+			}
+		}
+	);
+	return hourBreakdown;
+}
+
+function configureDayGraph(response) {
+	let textElement = document.getElementById("dayTotal");
 	let data = [];
 	let hourPerDay = 0;
 	
@@ -37,13 +79,11 @@ function configureGraph(response) {
 	});
 
 	let canvas = document.createElement("canvas");
-	canvas.id = "daychart";
-
 	new Chart(
 		canvas,
 		{
-		  type: 'bar',
-		  data: {
+			type: 'bar',
+			data: {
 				labels: data.map(row => row.hour),
 				datasets: [
 					{
@@ -51,21 +91,35 @@ function configureGraph(response) {
 						data: data.map(row => row.activeTime / 60000),
 					}
 				]
+			},
+			options: {
+				responsive: true,
+				onClick: (e, active) => {
+					if (active.length == 0 || dayData.length == undefined) {
+						return;
+					}
+					let chartElement = document.getElementById("hourBreakdown");
+					chartElement.innerHTML = "";
+					chartElement.append(hourBreakdownChart(e, active, response));
+				}
 			}
 		}
 	);
+
 	let dayTitle = document.createElement("h2");
 	dayTitle.className = "text-center";
 	dayTitle.textContent = new Date().toDateString();
+
 	textElement.append(dayTitle);
 	textElement.append(canvas);
 	textElement.append(document.createTextNode("Total time: " + msToTime(hourPerDay)));
 }
 
 // request data on load
-// TODO: separate by time, or remove it
+// TODO: separate by duration (day week month), or remove it
 chrome.runtime.sendMessage({command: "getDayData"}, function(response) {
-	configureGraph(response);
+	dayData = response;
+	configureDayGraph(response);
 });
 
 document.getElementById('deleteData').addEventListener('click', function() {

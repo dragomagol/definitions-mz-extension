@@ -3,6 +3,9 @@
 	"name": "Time Tracker",
 	"description": "This extension tracks the time spent on each website and provides a summary of the time spent on each website.",
 	"version": "1.0",
+    "icons": {
+        "128": "icons/appicon.png"
+    },
 	"permissions": [
 		"activeTab",
 		"all_urls",

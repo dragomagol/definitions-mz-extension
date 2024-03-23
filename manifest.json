@@ -1,6 +1,6 @@
 {
 	"manifest_version": 2,
-	"name": "Time Tracker",
+	"name": "Web Activity Visualizer",
 	"description": "This extension tracks the time spent on each website and provides a summary of the time spent on each website.",
 	"version": "1.0",
     "icons": {

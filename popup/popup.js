@@ -1,6 +1,4 @@
-const defaultDeleteText = "Delete data";
-const confirmationText = "Are you sure?";
-
+var deletionConfirmationFlag = false;
 var dayData; 
 
 function msToTime(duration) {
@@ -106,7 +104,7 @@ function configureDayGraph(response) {
 		}
 	);
 
-	let dayTitle = document.createElement("h2");
+	let dayTitle = document.createElement("h3");
 	dayTitle.className = "text-center";
 	dayTitle.textContent = new Date().toDateString();
 
@@ -123,15 +121,16 @@ chrome.runtime.sendMessage({command: "getDayData"}, function(response) {
 });
 
 document.getElementById('deleteData').addEventListener('click', function() {
-	if (this.textContent === defaultDeleteText) {
-		this.textContent = confirmationText;
+	if (!deletionConfirmationFlag) {
+		this.textContent = "Are you sure?";
 		this.className = "btn btn-danger";
-		return;
+		deletionConfirmationFlag = true;
 	} else {
 		chrome.runtime.sendMessage({command: "deleteData"}, function(response) {
 			document.getElementById("pills-day").textContent = "";
 		});
-		this.textContent = defaultDeleteText;
+		this.innerHTML = `<i class="fa fa-trash"></i>`;
 		this.className = "btn btn-primary";
+		deletionConfirmationFlag = false;
 	}
 });

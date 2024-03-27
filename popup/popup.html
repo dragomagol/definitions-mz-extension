@@ -3,14 +3,26 @@
 	<head>
 		<meta charset="utf-8" />
 		<link rel="stylesheet" href="bootstrap.min.css" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.2.0/chart.umd.js"></script>
 		<style>
-			body { width: 500px; height: 500px; padding: 1em; }
+			body { 
+				width: 500px; 
+				height: 500px; 
+				padding: 1em; 
+				overflow-x: hidden; 
+				background-color: #effdff;
+			}
 		</style>
 	</head>
 
 	<body>
 		<div class="panel">
+			<div class="d-flex justify-content-end">
+				<button class="btn btn-primary" id="deleteData" title="Delete all data">
+					<i class="fa fa-trash" style="font-size: 0.73em;"></i>
+				</button>
+			</div>
 			<ul class="nav nav-pills mb-3 justify-content-center" id="pills-tab" role="tablist">
 				<!-- Day Tab Button -->
 				<li class="nav-item" role="presentation">
@@ -47,8 +59,6 @@
 				</div>
 			</div>
 		</div>
-		<button class="btn btn-primary" id="deleteData">Delete data</button>
-
 		<script src="bootstrap.min.js"></script>
 		<script type="module" src="popup.js"></script>
 	</body>

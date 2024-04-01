@@ -19,8 +19,8 @@ async function onFocusLost() {
 	if (currentHost == "")
 		return;
 
-	// Don't record intervals less than 1 second or if the host is empty
-	if (new Date().getTime() - lastInterval >= 1000 && currentHost != "") {
+	// Don't record intervals less than 10 seconds or if the host is empty
+	if (new Date().getTime() - lastInterval >= 10000 && currentHost != "") {
 		database.insertBlock({
 			host: currentHost,
 			startTime: lastInterval,
